@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsNotEmpty } from 'class-validator';
 
-export class createDTO {
+export class MenuCreateDTO {
   @IsString()
   id: string;
 
