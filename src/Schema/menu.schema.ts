@@ -1,14 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { Role } from './Role.enum';
+import { Category } from './category.schema';
 
 export type MenuDocument = HydratedDocument<Menu>;
 
 @Schema()
-export class Menu extends Document {
-  @Prop({ required: true })
-  id: string;
-
+export class Menu {
   @Prop({ required: true })
   name: string;
 
@@ -21,8 +18,8 @@ export class Menu extends Document {
   @Prop({ required: true })
   image: string;
 
-  @Prop()
-  role: Role[];
+  @Prop({ required: true })
+  category: Category;
 }
 
 export const MenuSchema = SchemaFactory.createForClass(Menu);
