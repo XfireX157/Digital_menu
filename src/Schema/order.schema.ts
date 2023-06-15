@@ -2,24 +2,21 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { Menu } from './menu.schema';
 
-export type MenuDocument = HydratedDocument<Order>;
+export type OrderDocument = HydratedDocument<Order>;
 
 @Schema()
 export class Order {
   @Prop({ required: true })
   tableNumber: number;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ unique: true })
   orderNumber: string;
 
-  @Prop({ required: true })
-  total: number;
-
-  @Prop()
+  @Prop({ default: 0 })
   totalPrice: number;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Menu' }], required: true })
-  menuItems: Menu[];
+  menuItem: Menu[];
 }
 
 export const OrderSchama = SchemaFactory.createForClass(Order);

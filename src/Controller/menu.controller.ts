@@ -9,6 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { MenuCreateDTO } from 'src/DTO/Menu/menu_create.dto';
+import { MenuPagineDTO } from 'src/DTO/Menu/menu_pagine.dto';
 import { MenuUpdateDTO } from 'src/DTO/Menu/menu_update.dto';
 import { MenuViewDTO } from 'src/DTO/Menu/menu_view.dto';
 import { MenuService } from 'src/Service/menu.service';
@@ -17,9 +18,9 @@ import { MenuService } from 'src/Service/menu.service';
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
-  @Get()
-  async findAll(): Promise<MenuViewDTO[]> {
-    return this.menuService.findAll();
+  @Get('findAll')
+  async findAll(@Query() menu: MenuPagineDTO): Promise<MenuViewDTO[]> {
+    return this.menuService.findAll(menu);
   }
 
   @Get('findId/:id')

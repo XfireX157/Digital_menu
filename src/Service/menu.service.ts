@@ -7,6 +7,7 @@ import { ForbiddenException } from 'src/Exception/forbidden.exception';
 import { Menu } from 'src/Schema/menu.schema';
 import { Model } from 'mongoose';
 import { CategoryService } from './category.service';
+import { MenuPagineDTO } from 'src/DTO/Menu/menu_pagine.dto';
 
 @Injectable()
 export class MenuService {
@@ -15,8 +16,13 @@ export class MenuService {
     private readonly categoryModel: CategoryService,
   ) {}
 
-  async findAll(): Promise<MenuViewDTO[]> {
-    const findAll = await this.menuModel.find().exec();
+  async findAll(menu: MenuPagineDTO): Promise<MenuViewDTO[]> {
+    const { page = 0, pageSize = 10 } = menu;
+    const findAll = await this.menuModel
+      .find()
+      .skip(page)
+      .limit(pageSize)
+      .exec();
     if (findAll.length === 0) {
       throw new ForbiddenException('Não existe nenhuma categoria criada', 204);
     }
