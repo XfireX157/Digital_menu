@@ -18,14 +18,14 @@ export class MenuService {
 
   async findAll(menu: MenuPagineDTO): Promise<MenuViewDTO[]> {
     const { page = 0, pageSize = 10 } = menu;
-    const findAll = await this.menuModel
+    const findAll: Menu[] = await this.menuModel
       .find()
       .skip(page)
       .limit(pageSize)
       .exec();
-    if (findAll.length === 0) {
+    if (findAll.length === 0)
       throw new ForbiddenException('Não existe nenhuma categoria criada', 204);
-    }
+
     return findAll;
   }
 

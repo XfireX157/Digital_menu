@@ -19,4 +19,4 @@ export class Order {
   menuItem: Menu[];
 }
 
-export const OrderSchama = SchemaFactory.createForClass(Order);
+export const OrderSchema = SchemaFactory.createForClass(Order);
