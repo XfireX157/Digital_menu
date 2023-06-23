@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
-import { Role } from 'src/Schema/Role.enum';
+import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
+import { Role } from 'src/Enum/Role.enum';
 
 export class UserCreateDTO {
   @ApiProperty({
@@ -24,8 +24,8 @@ export class UserCreateDTO {
   @IsNotEmpty({ message: 'Essa campo não pode está vazio' })
   password: string;
 
-  @ApiProperty({ enum: ['admin', 'user'] })
-  @IsString()
+  @ApiProperty({ type: String, enum: Role })
+  @IsEnum(Role)
   @IsNotEmpty({ message: 'Essa campo não pode está vazio' })
   role: Role;
 }

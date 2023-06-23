@@ -24,7 +24,8 @@ export class MenuCreateDTO {
   price: number;
 
   @ApiProperty({
-    type: String,
+    type: 'string',
+    format: 'binary',
   })
   @IsString()
   @IsNotEmpty({ message: 'Essa campo não pode está vazio' })

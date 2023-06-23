@@ -6,6 +6,7 @@ import { CategoryModule } from './category.module';
 import { UserModule } from './user.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../Config/configuration';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import configuration from '../Config/configuration';
       envFilePath: '.env.development',
       load: [configuration],
     }),
+    MulterModule.register({ dest: './uploads' }),
     MongooseModule.forRoot('mongodb://localhost:27017/mongo'),
     MenuModule,
     OrderModule,

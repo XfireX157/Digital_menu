@@ -23,23 +23,13 @@ export class UserService {
     private readonly emailService: EmailService,
   ) {}
 
-  private async findOne(email: string): Promise<User> {
-    const getEmail = await this.UserModel.findOne({ email }).exec();
-    if (!getEmail) throw new ForbiddenException('Esse usuario não existe', 404);
-    return getEmail;
-  }
-
-  private async GenerateHash(): Promise<string> {
-    return randomBytes(20).toString('hex');
-  }
-
   async register(user: UserCreateDTO) {
     user.password = await bcrypt.hash(user.password, 10);
     return new this.UserModel(user).save();
   }
 
   async login(users: UserLoginDto) {
-    const user = await this.findOne(users.email);
+    const user = await this.findEmail(users.email);
     const isPasswordValid = await bcrypt.compare(users.password, user.password);
 
     if (!isPasswordValid) {
@@ -47,7 +37,6 @@ export class UserService {
     }
     const payload = {
       email: user.email,
-      password: user.password,
       roles: user.role,
     };
     const token = await this.jwtService.signAsync(payload);
@@ -56,7 +45,7 @@ export class UserService {
   }
 
   async forgetPassword(email: string) {
-    await this.findOne(email);
+    await this.findEmail(email);
     const token = await this.GenerateHash();
 
     const PasswordResetArray: ForgotPasswordDTO = {
@@ -115,5 +104,35 @@ export class UserService {
     deleteToken.deletedCount;
     user.save();
     return { message: 'Senha redefinida com sucesso' };
+  }
+
+  async getUserFromToken(authorization: string): Promise<User> {
+    try {
+      const token = authorization?.split(' ')[1];
+
+      const decodedToken: User = await this.jwtService.verify(token);
+
+      console.log(decodedToken);
+
+      const user = await this.findEmail(decodedToken.email);
+
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+
+      return user;
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
+  }
+
+  private async findEmail(email: string): Promise<User> {
+    const getEmail = await this.UserModel.findOne({ email }).exec();
+    if (!getEmail) throw new ForbiddenException('Esse usuario não existe', 404);
+    return getEmail;
+  }
+
+  private async GenerateHash(): Promise<string> {
+    return randomBytes(20).toString('hex');
   }
 }

@@ -8,18 +8,20 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CategoryCreateDTO } from 'src/DTO/Category/category.create.dto';
 import { CategoryUpdateDTO } from 'src/DTO/Category/category.update.dto';
 import { CategoryViewDTO } from 'src/DTO/Category/category.view.dto';
 import { AuthGuard } from 'src/Guards/jwt.guard';
-
 import { CategoryService } from 'src/Service/category.service';
 
+@ApiBearerAuth()
+@ApiTags('Category')
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @Get()
+  @Get('')
   async findAll(): Promise<CategoryViewDTO[]> {
     return this.categoryService.findAll();
   }

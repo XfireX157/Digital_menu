@@ -17,7 +17,7 @@ export class MenuService {
   ) {}
 
   async findAll(menu: MenuPagineDTO): Promise<MenuViewDTO[]> {
-    const { page = 0, pageSize = 10 } = menu;
+    const { page = 0, pageSize = 20 } = menu;
     const findAll: Menu[] = await this.menuModel
       .find()
       .skip(page)
@@ -42,11 +42,17 @@ export class MenuService {
     return findId;
   }
 
-  async create(menu: MenuCreateDTO) {
-    const newMenu = new this.menuModel(menu);
-    const category = await this.categoryModel.findName(menu.categoryName);
-    newMenu.category = category;
-    return newMenu.save();
+  async create(file: Express.Multer.File, req: Request) {
+    try {
+      const menu: MenuCreateDTO = req.body as unknown as MenuCreateDTO;
+      menu.image = file.path;
+      const category = await this.categoryModel.findName(menu.categoryName);
+      const newMenu = new this.menuModel(menu);
+      newMenu.category = category;
+      return newMenu.save();
+    } catch (e) {
+      throw new ForbiddenException('Error ai criar um novo menu', 400);
+    }
   }
 
   async deleteOne(id: string): Promise<MenuViewDTO> {

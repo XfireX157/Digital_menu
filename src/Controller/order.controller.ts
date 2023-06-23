@@ -1,8 +1,11 @@
-import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
-import { OrderPagineDTO } from 'src/DTO/Order/OrderPagine.dto';
+import { Controller, Post, Body, Get, Query, Patch } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { OrderPagineDTO } from 'src/DTO/Order/orderPagine.dto';
+import { OrderUpdateStatus } from 'src/DTO/Order/orderUpdateStatus.dto';
 import { Order } from 'src/Schema/order.schema';
 import { OrderService } from 'src/Service/order.service';
 
+@ApiTags('Order')
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
@@ -12,16 +15,23 @@ export class OrderController {
     return this.orderService.findAll(order);
   }
 
-  @Get(':id')
-  findId(@Param('id') id: string): Promise<Order> {
-    return this.orderService.findId(id);
+  @Get('commands')
+  findOrderNumber(@Query('orderNumber') orderNumber: string): Promise<Order> {
+    return this.orderService.findByOrderNumber(orderNumber);
   }
 
   @Post()
-  create(
+  async create(
     @Body('tableNumber') tableNumber: number,
     @Body('menuItemId') menuItemId: string[],
   ) {
-    return this.orderService.createOrder(tableNumber, menuItemId);
+    return await this.orderService.createOrder(tableNumber, menuItemId);
+  }
+
+  @Patch()
+  async updateStatus(
+    @Body() orderUpdateStatus: OrderUpdateStatus,
+  ): Promise<Order> {
+    return await this.orderService.updateOrderStatus(orderUpdateStatus);
   }
 }

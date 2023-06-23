@@ -1,12 +1,25 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Header, Headers } from '@nestjs/common';
+import { ApiBearerAuth, ApiHeaders, ApiTags } from '@nestjs/swagger';
 import { ResetPasswordDTO } from 'src/DTO/User/reset_Password.dto';
 import { UserCreateDTO } from 'src/DTO/User/user_create.dto';
 import { UserLoginDto } from 'src/DTO/User/user_login.dto';
+import { User } from 'src/Schema/user.schema';
 import { UserService } from 'src/Service/user.service';
 
+@ApiBearerAuth()
+@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('session')
+  @ApiHeaders([{ name: 'Authorization' }])
+  @Header('X-Custom-Header', 'custon value')
+  async getUserFromToken(
+    @Headers('Authorization') authorization: string,
+  ): Promise<User> {
+    return this.userService.getUserFromToken(authorization);
+  }
 
   @Post('register')
   async Register(@Body() user: UserCreateDTO) {
