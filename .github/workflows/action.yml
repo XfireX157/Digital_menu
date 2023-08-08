@@ -11,15 +11,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-      with: 
-        username: ${{ secrets.USER }}
-        password: ${{ secrets.PASSWORD }}
-    - name: Build and push Docker images 
-      uses: docker/build-push-action@v2.7.0
-      with: 
-        context: .
-        file: ./Dockerfile
-        push: true
-        tags: |
-          gustavomartins09/digital_menu:latest
-        
+    
+    - name: Login to Docker Hub
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker images
+      run: |
+        docker build -t gustavomartins09/digital_menu:latest .
+        docker push gustavomartins09/digital_menu:latest
+
+    - name: Cleanup
+      run: docker logout
