@@ -6,7 +6,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { OrderPagineDTO } from '../DTO/Order/orderPagine.dto';
 import { ForbiddenException } from '../Exception/forbidden.exception';
-import { order, updateOrder } from './Mock/OrderMock';
+import { order } from './Mock/OrderMock';
 import { TableService } from '../Service/table.service';
 import { Menu } from '../Schema/menu.schema';
 import { CategoryService } from '../Service/category.service';
