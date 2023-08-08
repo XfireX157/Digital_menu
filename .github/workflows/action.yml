@@ -22,5 +22,4 @@ jobs:
         push: true
         tags: |
           gustavomartins09/digital_menu:latest
-          gustavomartins09/digital_menu-mongodb:latest
         
