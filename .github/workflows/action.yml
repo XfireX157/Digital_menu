@@ -18,7 +18,7 @@ jobs:
       uses: docker/build-push-action@v2.7.0
       with: 
         context: .
-        file: .
+        file: ./Dockerfile
         push: true
         tags: |
           gustavomartins09/digital_menu:latest
