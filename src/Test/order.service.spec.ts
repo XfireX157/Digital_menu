@@ -4,7 +4,7 @@ import { Order } from '../Schema/order.schema';
 import { MenuService } from '../Service/menu.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { OrderPagineDTO } from '../DTO/Order/orderPagine.dto';
+import { OrderPagineDTO } from '../DTO/Order/order_pagine.dto';
 import { ForbiddenException } from '../Exception/forbidden.exception';
 import { order } from './Mock/OrderMock';
 import { TableService } from '../Service/table.service';

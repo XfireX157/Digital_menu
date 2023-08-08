@@ -1,10 +1,10 @@
 import { Controller, Post, Body, Get, Query, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { OrderPagineDTO } from '../DTO/Order/orderPagine.dto';
+import { OrderPagineDTO } from '../DTO/Order/order_pagine.dto';
 import {
   OrderCreateDTO,
   OrderUpdateStatus,
-} from '../DTO/Order/orderCreate.dto';
+} from '../DTO/Order/order_create.dto';
 import { Order } from '../Schema/order.schema';
 import { OrderService } from '../Service/order.service';
 

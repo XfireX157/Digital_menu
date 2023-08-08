@@ -4,12 +4,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Menu, MenuDocument } from '../Schema/menu.schema';
 import { ForbiddenException } from '../Exception/forbidden.exception';
-import { OrderPagineDTO } from '../DTO/Order/orderPagine.dto';
+import { OrderPagineDTO } from '../DTO/Order/order_pagine.dto';
 import { OrderStatus } from '../Enum/OrderStatus.enum';
 import {
   OrderCreateDTO,
   OrderUpdateStatus,
-} from 'src/DTO/Order/orderCreate.dto';
+} from 'src/DTO/Order/order_create.dto';
 import { OrderItems } from '../Schema/orderItems.shema';
 import { TableService } from './table.service';
 
