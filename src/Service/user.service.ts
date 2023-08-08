@@ -27,7 +27,7 @@ export class UserService {
     user.password = await bcrypt.hash(user.password, 10);
     return this.UserModel.create(user);
   }
-  
+
   async login(users: UserLoginDto) {
     const user = await this.findEmail(users.email);
     const isPasswordValid = await bcrypt.compare(users.password, user.password);
