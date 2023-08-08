@@ -1,11 +1,25 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Header, Headers } from '@nestjs/common';
+import { ApiBearerAuth, ApiHeaders, ApiTags } from '@nestjs/swagger';
+import { ResetPasswordDTO } from 'src/DTO/User/reset_Password.dto';
 import { UserCreateDTO } from 'src/DTO/User/user_create.dto';
-import { userLoginDto } from 'src/DTO/User/user_login.dto';
+import { UserLoginDto } from 'src/DTO/User/user_login.dto';
+import { User } from 'src/Schema/user.schema';
 import { UserService } from 'src/Service/user.service';
 
+@ApiBearerAuth()
+@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('session')
+  @ApiHeaders([{ name: 'Authorization' }])
+  @Header('X-Custom-Header', 'custon value')
+  async getUserFromToken(
+    @Headers('Authorization') authorization: string,
+  ): Promise<User> {
+    return this.userService.getUserFromToken(authorization);
+  }
 
   @Post('register')
   async Register(@Body() user: UserCreateDTO) {
@@ -13,7 +27,17 @@ export class UserController {
   }
 
   @Post('login')
-  async Login(@Body() user: userLoginDto) {
+  async Login(@Body() user: UserLoginDto) {
     return this.userService.login(user);
+  }
+
+  @Post('forgot-password')
+  async ForgotPassword(@Body('email') email: string) {
+    return this.userService.forgetPassword(email);
+  }
+
+  @Post('reset-password')
+  async ResertPassword(@Body() resetPasswordDTO: ResetPasswordDTO) {
+    return this.userService.resetPassword(resetPasswordDTO);
   }
 }

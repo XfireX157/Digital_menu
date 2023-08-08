@@ -1,11 +1,11 @@
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Injectable } from '@nestjs/common';
-import { Category } from 'src/Schema/category.schema';
-import { CategoryViewDTO } from 'src/DTO/Category/category.view.dto';
-import { CategoryCreateDTO } from 'src/DTO/Category/category.create.dto';
-import { CategoryUpdateDTO } from 'src/DTO/Category/category.update.dto';
-import { ForbiddenException } from 'src/Exception/forbidden.exception';
+import { Category } from '../Schema/category.schema';
+import { CategoryViewDTO } from '../DTO/Category/category.view.dto';
+import { CategoryCreateDTO } from '../DTO/Category/category.create.dto';
+import { CategoryUpdateDTO } from '../DTO/Category/category.update.dto';
+import { ForbiddenException } from '../Exception/forbidden.exception';
 
 @Injectable()
 export class CategoryService {
@@ -39,12 +39,14 @@ export class CategoryService {
     return findIdExist;
   }
 
-  async create(menu: CategoryCreateDTO) {
-    const findNameExist = await this.CategoryModel.findOne({ name: menu.name });
+  async create(category: CategoryCreateDTO) {
+    const findNameExist = await this.CategoryModel.findOne({
+      name: category.name,
+    });
     if (findNameExist) {
       throw new ForbiddenException('Essa categoria já existe', 409);
     }
-    return this.CategoryModel.create(menu);
+    return this.CategoryModel.create(category);
   }
 
   async deleteOne(id: string): Promise<CategoryViewDTO> {

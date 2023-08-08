@@ -6,13 +6,17 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { CategoryCreateDTO } from 'src/DTO/Category/category.create.dto';
-import { CategoryUpdateDTO } from 'src/DTO/Category/category.update.dto';
-import { CategoryViewDTO } from 'src/DTO/Category/category.view.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { CategoryCreateDTO } from '../DTO/Category/category.create.dto';
+import { CategoryUpdateDTO } from '../DTO/Category/category.update.dto';
+import { CategoryViewDTO } from '../DTO/Category/category.view.dto';
+import { AuthGuard } from '../Guards/jwt.guard';
+import { CategoryService } from '../Service/category.service';
 
-import { CategoryService } from 'src/Service/category.service';
-
+@ApiBearerAuth()
+@ApiTags('Category')
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
@@ -27,21 +31,25 @@ export class CategoryController {
     return this.categoryService.findName(name);
   }
 
+  @UseGuards(AuthGuard)
   @Get('findId/:id')
   findId(@Param('id') id: string): Promise<CategoryViewDTO> {
     return this.categoryService.findId(id);
   }
 
+  @UseGuards(AuthGuard)
   @Post()
   create(@Body() todo: CategoryCreateDTO) {
     return this.categoryService.create(todo);
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
   deleteTodo(@Param('id') id: string): Promise<CategoryViewDTO> {
     return this.categoryService.deleteOne(id);
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
   updateID(
     @Param('id') id: string,

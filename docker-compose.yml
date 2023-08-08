@@ -1,0 +1,26 @@
+version: '1.0'
+services:
+  digital_menu-mongodb:
+    image: mongo:latest
+    container_name: digital_menu-mongodb
+    ports:
+      - '27017:27017'
+    networks:
+      - server_network
+
+  digital_menu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: digital_menu
+    command: npm run start
+    ports:
+      - 3000:3000
+      - 9229:3000
+    depends_on:
+      - digital_menu-mongodb
+    networks:
+      - server_network
+
+networks:
+  server_network:
