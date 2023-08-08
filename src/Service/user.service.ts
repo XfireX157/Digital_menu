@@ -28,10 +28,6 @@ export class UserService {
     return this.UserModel.create(user);
   }
 
-<<<<<<< HEAD
-  async login(user: userLoginDto) {
-    return 'main';
-=======
   async login(users: UserLoginDto) {
     const user = await this.findEmail(users.email);
     const isPasswordValid = await bcrypt.compare(users.password, user.password);
@@ -132,6 +128,5 @@ export class UserService {
 
   async GenerateHash(): Promise<string> {
     return randomBytes(20).toString('hex');
->>>>>>> develop
   }
 }
