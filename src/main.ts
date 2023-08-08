@@ -3,22 +3,21 @@ import { AppModule } from './Module/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './Exception/http-exception.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { file } from 'src/Config/configuration';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    cors: true,
-    bodyParser: true,
+    snapshot: true,
   });
-  app.useStaticAssets(path.join(__dirname, '../uploads'));
+
+  const port = process.env.PORT || 3000;
+
+  app.useStaticAssets(file);
+
   app.enableCors();
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-    }),
-  );
+  app.useGlobalPipes(new ValidationPipe());
 
   const config = new DocumentBuilder()
     .setTitle('Cats example')
@@ -27,7 +26,8 @@ async function bootstrap() {
     .addTag('Menu Digital')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-  await app.listen(3000);
+  SwaggerModule.setup('swagger', app, document);
+
+  await app.listen(port);
 }
 bootstrap();

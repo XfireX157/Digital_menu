@@ -1,9 +1,12 @@
 import { Controller, Post, Body, Get, Query, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { OrderPagineDTO } from 'src/DTO/Order/orderPagine.dto';
-import { OrderUpdateStatus } from 'src/DTO/Order/orderUpdateStatus.dto';
-import { Order } from 'src/Schema/order.schema';
-import { OrderService } from 'src/Service/order.service';
+import { OrderPagineDTO } from '../DTO/Order/orderPagine.dto';
+import {
+  OrderCreateDTO,
+  OrderUpdateStatus,
+} from '../DTO/Order/orderCreate.dto';
+import { Order } from '../Schema/order.schema';
+import { OrderService } from '../Service/order.service';
 
 @ApiTags('Order')
 @Controller('order')
@@ -15,17 +18,22 @@ export class OrderController {
     return this.orderService.findAll(order);
   }
 
-  @Get('commands')
-  findOrderNumber(@Query('orderNumber') orderNumber: string): Promise<Order> {
-    return this.orderService.findByOrderNumber(orderNumber);
+  @Get(':id')
+  findOrderNumber(@Query('id') orderNumber: string): Promise<Order> {
+    return this.orderService.findByOrder(orderNumber);
   }
 
   @Post()
   async create(
+    @Body('customerName') customerName: string,
     @Body('tableNumber') tableNumber: number,
-    @Body('menuItemId') menuItemId: string[],
+    @Body() orders: OrderCreateDTO,
   ) {
-    return await this.orderService.createOrder(tableNumber, menuItemId);
+    return await this.orderService.createOrder(
+      customerName,
+      tableNumber,
+      orders,
+    );
   }
 
   @Patch()

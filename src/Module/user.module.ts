@@ -14,7 +14,7 @@ import { UserService } from 'src/Service/user.service';
   imports: [
     JwtModule.register({
       global: true,
-      secret: 'secreta',
+      secret: '2525',
       signOptions: { expiresIn: 84600 },
     }),
     MongooseModule.forFeature([

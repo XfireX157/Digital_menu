@@ -1,17 +1,17 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserCreateDTO } from 'src/DTO/User/user_create.dto';
-import { User } from 'src/Schema/user.schema';
-import { UserLoginDto } from 'src/DTO/User/user_login.dto';
-import { ForbiddenException } from 'src/Exception/forbidden.exception';
+import { UserCreateDTO } from '../DTO/User/user_create.dto';
+import { User } from '../Schema/user.schema';
+import { UserLoginDto } from '../DTO/User/user_login.dto';
+import { ForbiddenException } from '../Exception/forbidden.exception';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
-import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { PasswordReset } from 'src/Schema/PasswordResetToken.schema';
-import { ForgotPasswordDTO } from 'src/DTO/User/forgot_Password.dto';
-import { ResetPasswordDTO } from 'src/DTO/User/reset_Password.dto';
+import { PasswordReset } from '../Schema/PasswordResetToken.schema';
+import { ForgotPasswordDTO } from '../DTO/User/forgot_Password.dto';
+import { ResetPasswordDTO } from '../DTO/User/reset_Password.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -25,7 +25,7 @@ export class UserService {
 
   async register(user: UserCreateDTO) {
     user.password = await bcrypt.hash(user.password, 10);
-    return new this.UserModel(user).save();
+    return this.UserModel.create(user);
   }
 
   async login(users: UserLoginDto) {
@@ -56,13 +56,13 @@ export class UserService {
 
     const deleteToken = await this.ResetPassword.deleteOne({
       token: PasswordResetArray.token,
-    }).exec();
+    });
 
     if (PasswordResetArray.tokenExpire < new Date()) {
       deleteToken.deletedCount;
     }
 
-    await new this.ResetPassword(PasswordResetArray).save();
+    await this.ResetPassword.create(PasswordResetArray);
 
     await this.emailService.sendMail(
       email,
@@ -81,15 +81,19 @@ export class UserService {
       token: passwordToken.token,
     }).exec();
 
+    if (token === null) {
+      throw new ForbiddenException('Esse token não existe', 404);
+    }
+
     const user = await this.UserModel.findOne({ email: token.email }).exec();
+
+    if (user === null) {
+      throw new ForbiddenException('Esse usuario não existe', 404);
+    }
 
     const deleteToken = await this.ResetPassword.deleteOne({
       token: passwordToken.token,
-    }).exec();
-
-    if (!token) {
-      throw new ForbiddenException('Esse token não existe', 404);
-    }
+    });
 
     if (token.tokenExpire < new Date()) {
       deleteToken.deletedCount;
@@ -109,30 +113,20 @@ export class UserService {
   async getUserFromToken(authorization: string): Promise<User> {
     try {
       const token = authorization?.split(' ')[1];
-
       const decodedToken: User = await this.jwtService.verify(token);
-
-      console.log(decodedToken);
-
-      const user = await this.findEmail(decodedToken.email);
-
-      if (!user) {
-        throw new UnauthorizedException();
-      }
-
-      return user;
+      return decodedToken;
     } catch (error) {
       throw new UnauthorizedException();
     }
   }
 
-  private async findEmail(email: string): Promise<User> {
-    const getEmail = await this.UserModel.findOne({ email }).exec();
+  async findEmail(email: string): Promise<User> {
+    const getEmail = await this.UserModel.findOne({ email });
     if (!getEmail) throw new ForbiddenException('Esse usuario não existe', 404);
     return getEmail;
   }
 
-  private async GenerateHash(): Promise<string> {
+  async GenerateHash(): Promise<string> {
     return randomBytes(20).toString('hex');
   }
 }

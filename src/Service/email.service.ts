@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { ForbiddenException } from '../Exception/forbidden.exception';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class EmailService {
   private readonly transporter: nodemailer.Transporter;
-  constructor() {
+  constructor(private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
-      host: 'sandbox.smtp.mailtrap.io',
-      port: 2525,
+      host: this.configService.get<string>('HOST_MAIL'),
+      port: this.configService.get<number>('PORT_MAIL'),
       auth: {
-        user: 'a568eb30ced0f8',
-        pass: 'a8bfa243f79590',
+        user: this.configService.get<string>('USER_MAIL'),
+        pass: this.configService.get<string>('PASS_MAIL'),
       },
     });
   }
@@ -28,7 +30,7 @@ export class EmailService {
 
       return { message: 'Email sent successfully' };
     } catch (error) {
-      throw new Error(`Failed to send email ${error}`);
+      throw new ForbiddenException('Failed to send email', 404);
     }
   }
 }

@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { MenuCreateDTO } from 'src/DTO/Menu/menu_create.dto';
-import { MenuUpdateDTO } from 'src/DTO/Menu/menu_update.dto';
-import { MenuViewDTO } from 'src/DTO/Menu/menu_view.dto';
-import { ForbiddenException } from 'src/Exception/forbidden.exception';
-import { Menu } from 'src/Schema/menu.schema';
-import { Model } from 'mongoose';
+import {
+  MenuCreateDTO,
+  MenuViewDTO,
+  MenuUpdateDTO,
+} from '../DTO/Menu/menu_create.dto';
+import { ForbiddenException } from '../Exception/forbidden.exception';
+import { Menu } from '../Schema/menu.schema';
+import { Model, Types } from 'mongoose';
 import { CategoryService } from './category.service';
-import { MenuPagineDTO } from 'src/DTO/Menu/menu_pagine.dto';
+import { MenuPagineDTO } from '../DTO/Menu/menu_pagine.dto';
 
 @Injectable()
 export class MenuService {
@@ -17,42 +19,47 @@ export class MenuService {
   ) {}
 
   async findAll(menu: MenuPagineDTO): Promise<MenuViewDTO[]> {
-    const { page = 0, pageSize = 20 } = menu;
+    const { page = 0, pageSize = 10 } = menu;
     const findAll: Menu[] = await this.menuModel
       .find()
       .skip(page)
       .limit(pageSize)
       .exec();
-    if (findAll.length === 0)
-      throw new ForbiddenException('Não existe nenhuma categoria criada', 204);
+    if (findAll.length === 0) {
+      throw new ForbiddenException('Não existe nenhum menu criado', 204);
+    }
 
     return findAll;
   }
 
-  async filterMenu(name: string): Promise<MenuViewDTO[]> {
+  async search(name: string): Promise<MenuViewDTO[]> {
     const regex = new RegExp(name, 'i');
     return await this.menuModel.find({ name: regex }).exec();
   }
 
-  async findId(id: string): Promise<Menu> {
-    const findId = await this.menuModel.findById(id).exec();
+  async findId(_id: string): Promise<MenuViewDTO> {
+    const findId = await this.menuModel
+      .findOne({ _id: new Types.ObjectId(_id) })
+      .exec();
     if (!findId) {
-      throw new ForbiddenException('Não existe nenhuma categoria criada', 404);
+      throw new ForbiddenException('Não existe nenhum menu criado', 404);
     }
     return findId;
   }
 
   async create(file: Express.Multer.File, req: Request) {
-    try {
-      const menu: MenuCreateDTO = req.body as unknown as MenuCreateDTO;
-      menu.image = file.path;
-      const category = await this.categoryModel.findName(menu.categoryName);
-      const newMenu = new this.menuModel(menu);
-      newMenu.category = category;
-      return newMenu.save();
-    } catch (e) {
-      throw new ForbiddenException('Error ai criar um novo menu', 400);
-    }
+    const menu: MenuCreateDTO = req.body as unknown as MenuCreateDTO;
+    const category = await this.categoryModel.findName(menu.categoryName);
+    const newMenu = new this.menuModel();
+
+    newMenu._id = new Types.ObjectId();
+    newMenu.name = menu.name;
+    newMenu.description = menu.description;
+    newMenu.price = menu.price;
+    newMenu.image = file.filename;
+    newMenu.category = category;
+
+    return newMenu.save();
   }
 
   async deleteOne(id: string): Promise<MenuViewDTO> {

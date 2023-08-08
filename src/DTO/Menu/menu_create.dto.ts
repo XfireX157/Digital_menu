@@ -1,7 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsNotEmpty } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
+import { Types } from 'mongoose';
 
 export class MenuCreateDTO {
+  @ApiProperty({ type: Types.ObjectId })
+  _id: Types.ObjectId;
+
   @ApiProperty({
     type: String,
   })
@@ -38,3 +43,7 @@ export class MenuCreateDTO {
   @IsNotEmpty({ message: 'Esse campo não pode está vazio' })
   categoryName: string;
 }
+
+export class MenuViewDTO extends PartialType(MenuCreateDTO) {}
+
+export class MenuUpdateDTO extends PartialType(MenuCreateDTO) {}
