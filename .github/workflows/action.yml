@@ -2,43 +2,25 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build:
+  CI:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 18
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build and test
-      run: npm run build
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 18
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Deploy to production
-      run: npm run start:prod
+      with: 
+        username: ${{ secrets.USER }}
+        password: ${{ secrets.PASSWORD }}
+    - name: Build and push Docker images 
+      uses: docker/build-push/action@3.2.0
+      with: 
+        context: .
+        file: .
+        push: true
+        tags: |
+          gustavomartins09/digital_menu:latest
+          gustavomartins09/digital_menu-mongodb:latest
+        
