@@ -6,7 +6,7 @@ export default () => ({
   user: process.env.USER_MAIL,
   pass: process.env.PASS_MAIL,
   jwt: process.env.JWT_SECRET,
-  mongodb: process.env.MONGO_URL,
+  mongodb: process.env.MONGO_URL || process.env.MONGO_URL_LOCAL,
 });
 
 export const file = path.resolve(

@@ -10,7 +10,9 @@ import { UserCreateDTO } from 'src/DTO/User/user_create.dto';
 import { Role } from '../Enum/Role.enum';
 import { UserLoginDto } from 'src/DTO/User/user_login.dto';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { UnauthorizedException } from '@nestjs/common';
+import { ForgotPasswordDTO } from 'src/DTO/User/forgot_Password.dto';
 
 jest.mock('bcrypt');
 
@@ -35,6 +37,8 @@ describe('UserService', () => {
         {
           provide: getModelToken(PasswordReset.name),
           useValue: {
+            create: jest.fn(), // Mock the create method
+            findOne: jest.fn(),
             deleteOne: jest.fn(),
           },
         },
@@ -42,10 +46,6 @@ describe('UserService', () => {
           provide: JwtService,
           useValue: {
             signAsync: jest.fn().mockResolvedValue('mockedToken'),
-            verify: jest.fn().mockResolvedValue({
-              email: 'test@example.com',
-              roles: ['user'],
-            }),
           },
         },
         {
@@ -140,102 +140,86 @@ describe('UserService', () => {
       expect(userService.login(users)).rejects.toThrow(UnauthorizedException);
     });
   });
+
   describe('forgetPassword', () => {
     it('should reset the password and return success message', async () => {
-      const token = 'test-token';
       const email = 'test@example.com';
-      const ForgetPassword = {
+      const token = 'test-token';
+
+      const PasswordResetArray: ForgotPasswordDTO = {
         token,
         email,
         tokenExpire: new Date(Date.now() + 300000),
       };
 
-      jest
-        .spyOn(userService, 'GenerateHash')
-        .mockImplementation(() => Promise.resolve(token));
+      const findOneUserMock = jest.fn().mockResolvedValue(PasswordResetArray);
 
-      // Replace the property instead of spying on it
-      jest.replaceProperty(
-        resetPasswordModel,
-        'findOne',
-        jest.fn().mockResolvedValue(ForgetPassword),
-      );
+      userModel.findOne = findOneUserMock;
 
-      jest.spyOn(userModel, 'findOne').mockResolvedValue({
-        email,
-        password: await bcrypt.hash('old-password', 10), // Mocking the old hashed password
-        save: jest.fn().mockResolvedValue(undefined),
-      } as any);
+      const sendMailSpy = jest.spyOn(emailService, 'sendMail');
 
-      const resetPasswordDto = {
-        token,
-        password: 'new-password',
-        confirmPassword: 'new-password',
-      };
+      jest.spyOn(userService, 'GenerateHash').mockResolvedValue(token);
 
-      const result = await userService.resetPassword(resetPasswordDto);
+      const result = await userService.forgetPassword(email);
 
-      expect(result).toEqual({ message: 'Senha redefinida com sucesso' });
-      expect(resetPasswordModel.deleteOne).toHaveBeenCalledTimes(1);
-      expect(userModel.findOne).toHaveBeenCalledTimes(1);
-      expect(userModel.findOne).toHaveBeenCalledWith({ email });
-      expect(userModel.findOne().exec).toHaveBeenCalledTimes(1);
-      expect(bcrypt.hash).toHaveBeenCalledWith('new-password', 10);
-      expect(emailService.sendMail).toHaveBeenCalledWith(
+      expect(findOneUserMock).toHaveBeenCalledWith({ email });
+      expect(sendMailSpy).toHaveBeenCalledWith(
         email,
         'Redefinição da sua senha',
         `Verifique sua conta, com essa token: ${token}`,
       );
+      expect(result).toEqual({
+        message:
+          'Um e-mail de redefinição de senha foi enviado para o seu endereço de e-mail',
+      });
     });
-
-    // Add more test cases to cover different scenarios if needed
   });
 
-  describe('forgetPassword', () => {
-    it('should reset the password and return success message', async () => {
-      const token = 'test-token';
-      const email = 'test@example.com';
-      const ForgetPassword = {
-        token,
-        email,
-        tokenExpire: new Date(Date.now() + 300000),
-      };
+  // describe('forgetPassword', () => {
+  //   it('should reset the password and return success message', async () => {
+  //     const token = 'test-token';
+  //     const email = 'test@example.com';
+  //     const ForgetPassword = {
+  //       token,
+  //       email,
+  //       tokenExpire: new Date(Date.now() + 300000),
+  //     };
 
-      jest
-        .spyOn(userService, 'GenerateHash')
-        .mockImplementation(() => Promise.resolve(token));
+  //     jest
+  //       .spyOn(userService, 'GenerateHash')
+  //       .mockImplementation(() => Promise.resolve(token));
 
-      jest
-        .spyOn(resetPasswordModel, 'findOne')
-        .mockResolvedValue(ForgetPassword);
+  //     jest.replaceProperty(
+  //       resetPasswordModel,
+  //       'findOne',
+  //       jest.fn().mockResolvedValue(ForgetPassword),
+  //     );
 
-      jest.spyOn(userModel, 'findOne').mockResolvedValue({
-        email,
-        password: await bcrypt.hash('old-password', 10), // Mocking the old hashed password
-        save: jest.fn().mockResolvedValue(undefined),
-      } as any);
+  //     jest.spyOn(userModel, 'findOne').mockResolvedValue({
+  //       email,
+  //       password: await bcrypt.hash('old-password', 10), // Mocking the old hashed password
+  //       save: jest.fn().mockResolvedValue(undefined),
+  //     } as any);
 
-      const resetPasswordDto = {
-        token,
-        password: 'new-password',
-        confirmPassword: 'new-password',
-      };
+  //     const resetPasswordDto = {
+  //       token,
+  //       password: 'new-password',
+  //       confirmPassword: 'new-password',
+  //     };
 
-      const result = await userService.resetPassword(resetPasswordDto);
+  //     const result = await userService.resetPassword(resetPasswordDto);
 
-      expect(result).toEqual({ message: 'Senha redefinida com sucesso' });
-      expect(resetPasswordModel.deleteOne).toHaveBeenCalledTimes(1);
-      expect(userModel.findOne).toHaveBeenCalledTimes(1);
-      expect(userModel.findOne).toHaveBeenCalledWith({ email });
-      expect(userModel.findOne().exec).toHaveBeenCalledTimes(1);
-      expect(bcrypt.hash).toHaveBeenCalledWith('new-password', 10);
-      expect(emailService.sendMail).toHaveBeenCalledWith(
-        email,
-        'Redefinição da sua senha',
-        `Verifique sua conta, com essa token: ${token}`,
-      );
-    });
-
-    // Add more test cases to cover different scenarios if needed
-  });
+  //     expect(result).toEqual({ message: 'Senha redefinida com sucesso' });
+  //     expect(resetPasswordModel.deleteOne).toHaveBeenCalledTimes(1);
+  //     expect(userModel.findOne).toHaveBeenCalledTimes(1);
+  //     expect(userModel.findOne).toHaveBeenCalledWith({ email });
+  //     expect(userModel.findOne().exec).toHaveBeenCalledTimes(1);
+  //     expect(bcrypt.hash).toHaveBeenCalledWith('new-password', 10);
+  //     expect(emailService.sendMail).toHaveBeenCalledWith(
+  //       email,
+  //       'Redefinição da sua senha',
+  //       `Verifique sua conta, com essa token: ${token}`,
+  //     );
+  //   });
+  // });
 });

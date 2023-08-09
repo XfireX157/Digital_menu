@@ -44,6 +44,11 @@ export class UserService {
     return { token };
   }
 
+  async find(): Promise<PasswordReset[]> {
+    const findAll = await this.ResetPassword.find();
+    return findAll;
+  }
+
   async forgetPassword(email: string) {
     await this.findEmail(email);
     const token = await this.GenerateHash();
@@ -51,16 +56,8 @@ export class UserService {
     const PasswordResetArray: ForgotPasswordDTO = {
       token,
       email,
-      tokenExpire: new Date(Date.now() + 300000),
+      tokenExpire: new Date(Date.now() + 20),
     };
-
-    const deleteToken = await this.ResetPassword.deleteOne({
-      token: PasswordResetArray.token,
-    });
-
-    if (PasswordResetArray.tokenExpire < new Date()) {
-      deleteToken.deletedCount;
-    }
 
     await this.ResetPassword.create(PasswordResetArray);
 

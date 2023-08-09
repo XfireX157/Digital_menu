@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiHeaders, ApiTags } from '@nestjs/swagger';
 import { ResetPasswordDTO } from 'src/DTO/User/reset_Password.dto';
 import { UserCreateDTO } from 'src/DTO/User/user_create.dto';
 import { UserLoginDto } from 'src/DTO/User/user_login.dto';
+import { PasswordReset } from 'src/Schema/PasswordResetToken.schema';
 import { User } from 'src/Schema/user.schema';
 import { UserService } from 'src/Service/user.service';
 
@@ -11,6 +12,11 @@ import { UserService } from 'src/Service/user.service';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('get')
+  async findAll(): Promise<PasswordReset[]> {
+    return this.userService.find();
+  }
 
   @Get('session')
   @ApiHeaders([{ name: 'Authorization' }])
