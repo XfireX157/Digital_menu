@@ -78,7 +78,7 @@ describe('CategoryService', () => {
 
   describe('findName', () => {
     it('should return an name category', async () => {
-      const category: Category = { name: 'Category 1' };
+      const category: Category = { name: 'Categorys 1' };
       jest.spyOn(categoryModel, 'findOne').mockReturnValueOnce({
         exec: jest.fn().mockResolvedValueOnce(category),
       } as any);

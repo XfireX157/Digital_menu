@@ -124,7 +124,7 @@ describe('TableService', () => {
 
   describe('reserveTable', () => {
     it('I hope to reserve a table', async () => {
-      const customerName = 'John Doe';
+      const customerName = 'John Does';
       const tableNumber = 1;
       const mockTable = {
         _id: 'some-id',

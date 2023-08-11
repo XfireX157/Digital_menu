@@ -23,10 +23,6 @@ describe('MenuService', () => {
           provide: getModelToken(Menu.name),
           useValue: {
             new: jest.fn().mockImplementation((data) => data),
-
-            // ... other mock functions ...
-
-            // Add a mock implementation for the `save` method if needed
             save: jest.fn().mockResolvedValue({}),
 
             find: jest.fn().mockReturnValue({
@@ -38,7 +34,7 @@ describe('MenuService', () => {
             findById: jest.fn().mockReturnValue({
               exec: jest.fn().mockResolvedValueOnce(menu[0]),
             }),
-            create: jest.fn().mockResolvedValue({}),
+            create: jest.fn(),
             deleteOne: jest.fn(),
             findByIdAndUpdate: jest.fn().mockReturnValueOnce({
               exec: jest.fn().mockResolvedValueOnce(menu[0]),
@@ -127,59 +123,39 @@ describe('MenuService', () => {
     });
   });
 
-  // describe('create', () => {
-  //   it('should create a new menu', async () => {
-  //     // Arrange
-  //     const file: Express.Multer.File = {
-  //       fieldname: 'file',
-  //       originalname: 'menu-image.png',
-  //       encoding: '7bit',
-  //       mimetype: 'image/png',
-  //       destination: './uploads/',
-  //       filename: 'menu-image.png',
-  //       path: './uploads/menu-image.png',
-  //       size: 1024,
-  //     };
-  //     const req = {
-  //       body: {
-  //         name: 'New Menu',
-  //         description: 'A new menu item',
-  //         price: 12.99,
-  //         categoryName: 'New Category',
-  //       },
-  //     };
+  describe('create', () => {
+    it('should create a new menu', async () => {
+      // Mocks
+      const file: any = {
+        filename: 'menu-image.png',
+      };
+      const req: any = {
+        body: {
+          name: 'New Menu',
+          description: 'A new menu item',
+          price: 12.99,
+          categoryName: 'New Category',
+        },
+      };
 
-  //     const menuId = new Types.ObjectId().toString();
-  //     const category = {
-  //       _id: new Types.ObjectId(),
-  //       name: 'New Category',
-  //     };
+      const category = { _id: new Types.ObjectId(), name: 'New Category' };
+      const createdMenu = {
+        _id: new Types.ObjectId(),
+        ...req.body,
+        image: file.filename,
+        category,
+      };
 
-  //     // Mock the category service's findName method
-  //     jest.spyOn(categoryService, 'findName').mockResolvedValue(category);
+      jest.spyOn(categoryService, 'findName').mockResolvedValue(category);
 
-  //     // Mock the save method of the menuModel
-  //     jest.spyOn(menuModel.prototype, 'save').mockResolvedValue({
-  //       _id: menuId,
-  //       ...req.body,
-  //       image: file.filename,
-  //       category,
-  //     });
+      jest.spyOn(menuModel, 'create').mockResolvedValue(createdMenu);
 
-  //     // Act
-  //     const createdMenu = await menuService.create(file, req);
+      const result = await menuService.create(file, req);
 
-  //     // Assert
-  //     expect(categoryService.findName).toHaveBeenCalledWith('New Category');
-  //     expect(menuModel.prototype.save).toHaveBeenCalledWith();
-  //     expect(createdMenu).toEqual({
-  //       _id: menuId,
-  //       ...req.body,
-  //       image: file.filename,
-  //       category,
-  //     });
-  //   });
-  // });
+      expect(categoryService.findName).toHaveBeenCalledWith('New Category');
+      expect(result).toEqual(createdMenu);
+    });
+  });
 
   describe('delete', () => {
     it('delete this object by id', async () => {

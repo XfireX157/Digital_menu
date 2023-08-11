@@ -9,7 +9,7 @@ import { OrderStatus } from '../Enum/OrderStatus.enum';
 import {
   OrderCreateDTO,
   OrderUpdateStatus,
-} from 'src/DTO/Order/order_create.dto';
+} from '../DTO/Order/order_create.dto';
 import { OrderItems } from '../Schema/orderItems.shema';
 import { TableService } from './table.service';
 
@@ -18,7 +18,7 @@ export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Menu.name) private menuModel: Model<MenuDocument>,
-    private tableModel: TableService,
+    private tableService: TableService,
   ) {}
 
   async findAll(order: OrderPagineDTO): Promise<Order[]> {
@@ -47,20 +47,19 @@ export class OrderService {
     tableNumber: number,
     orders: OrderCreateDTO,
   ) {
-    const table = await this.tableModel.reserveTable(customerName, tableNumber);
+    const table = await this.tableService.reserveTable(
+      customerName,
+      tableNumber,
+    );
     const menuItem = orders.OrderItems.map((item) => item.menuId);
     const findMenu = await this.findMenu(menuItem);
     const totalPrice = findMenu.reduce((total, item) => total + item.price, 0);
-
-    const newOrder = new this.orderModel();
-    newOrder.table = table;
-    newOrder.totalPrice = totalPrice;
-    newOrder.status = OrderStatus.PENDING;
 
     const ordersItems = orders.OrderItems.map((item) => {
       const relatedMenu = findMenu.find(
         (menu) => menu._id.toString() === item.menuId,
       );
+
       if (relatedMenu === undefined) {
         throw new NotFoundException(
           `O menu com o id ${item.menuId} não foi encontrado`,
@@ -75,20 +74,27 @@ export class OrderService {
       return orderItem;
     });
 
-    newOrder.OrderItems = ordersItems;
-    return newOrder.save();
+    const newOrder: Order = {
+      totalPrice: totalPrice,
+      table: table,
+      status: OrderStatus.PENDING,
+      OrderItems: ordersItems,
+    };
+
+    return this.orderModel.create(newOrder);
   }
 
   async updateOrderStatus(updateOrder: OrderUpdateStatus): Promise<Order> {
-    const order = await this.orderModel.findById(updateOrder._id).exec();
+    const order = await this.orderModel.findById(updateOrder._id);
     const tableId = order?.table?._id.toString();
+
     if (tableId === undefined) {
       throw new NotFoundException(
-        `O id do pedido informado não existe ${updateOrder._id}`,
+        `O id do mesa informado não existe ${updateOrder._id}`,
       );
     }
 
-    if (order === null) {
+    if (!order) {
       throw new NotFoundException(
         `O id do pedido informado não existe ${updateOrder._id}`,
       );
@@ -100,24 +106,20 @@ export class OrderService {
       updateOrder.status === 'completed' ||
       updateOrder.status === 'canceled'
     ) {
-      await this.tableModel.cancelReservation(tableId);
+      await this.tableService.cancelReservation(tableId);
       await order.deleteOne();
     }
 
     return order;
   }
 
-  //metodos separados do controllers
-
   private async findMenu(menuId: string[]): Promise<Menu[]> {
     const menuArray: Menu[] = [];
     for (let i = 0; i < menuId.length; i++) {
       const element = menuId[i];
-      const orderMenu = await this.menuModel
-        .findOne({
-          _id: new Types.ObjectId(element),
-        })
-        .exec();
+      const orderMenu = await this.menuModel.findOne({
+        _id: new Types.ObjectId(element),
+      });
       if (orderMenu === null) {
         throw new NotFoundException(
           `O menu com o ID ${element} não foi encontrado`,

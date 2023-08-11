@@ -13,6 +13,9 @@ import { CategoryService } from '../Service/category.service';
 import { Table } from '../Schema/table.shema';
 import { Category } from '../Schema/category.schema';
 import { Types } from 'mongoose';
+import { OrderUpdateStatus } from '../DTO/Order/order_create.dto';
+import { OrderStatus } from '../Enum/OrderStatus.enum';
+import { NotFoundException } from '@nestjs/common';
 
 describe('OrderService', () => {
   let orderService: OrderService;
@@ -42,18 +45,24 @@ describe('OrderService', () => {
             findById: jest.fn().mockReturnValue({
               exec: jest.fn().mockResolvedValueOnce(order[0]),
             }),
+            new: jest.fn(),
+            save: jest.fn(),
           },
         },
         {
           provide: getModelToken(Menu.name),
           useValue: {
-            // Mock any relevant methods or provide dummy data if needed
+            findOne: jest.fn(),
           },
         },
         {
           provide: getModelToken(Table.name),
           useValue: {
-            // Mock any relevant methods or provide dummy data if needed
+            findOne: jest.fn().mockResolvedValue({
+              _id: 'tableId',
+              available: false,
+              save: jest.fn().mockResolvedValue(undefined),
+            }),
           },
         },
         {
@@ -124,20 +133,138 @@ describe('OrderService', () => {
       );
     });
   });
-  // describe('updateOrderStatus', () => {
-  //   it('I hope to update this order', async () => {
-  //     order[0].status = updateOrder.status;
 
-  //     const result = orderService.updateOrderStatus(updateOrder);
-  //     expect(orderModel.prototype.save).toBeCalledWith();
-  //     if (
-  //       updateOrder.status === 'completed' ||
-  //       updateOrder.status === 'canceled'
-  //     ) {
-  //       expect(orderModel.deleteOne).toBeCalledWith();
-  //     }
-  //     expect(order[0].status).toEqual(updateOrder.status);
-  //     expect(result).toEqual(order[0]);
+  // describe('createOrder', () => {
+  //   it('should create a new order', async () => {
+  //     // Mock input data
+  //     const customerName = 'John Doe';
+  //     const tableNumber = 1;
+
+  //     // Mock the table reservation
+  //     const table: Table = {
+  //       _id: new Types.ObjectId(),
+  //       tableNumber: 1,
+  //       available: false,
+  //       reservationTime: undefined,
+  //       reservedByName: undefined,
+  //     };
+  //     jest.spyOn(tableService, 'reserveTable').mockResolvedValue(table);
+
+  //     // Mock the findMenu function
+  //     const menuItems: Menu[] = [
+  //       {
+  //         _id: new Types.ObjectId('64d6619e4ccb3556015282cc'), // Ensure valid ObjectId string
+  //         name: 'TestName',
+  //         category: {
+  //           name: 'testCategory', // Corrected typo here
+  //         },
+  //         description: 'testDescription',
+  //         image: 'nome da imagem',
+  //         price: 15,
+  //       },
+  //     ];
+  //     jest.spyOn(menuService, 'findAll').mockResolvedValue(menuItems);
+
+  //     const findMenu: Menu[] = [
+  //       {
+  //         _id: new Types.ObjectId('64d6619e4ccb3556015282cc'), // Ensure valid ObjectId string
+  //         name: 'TestName',
+  //         category: {
+  //           name: 'testCategory',
+  //         },
+  //         description: 'testDescription',
+  //         image: 'nome da imagem',
+  //         price: 15,
+  //       },
+  //     ];
+  //     // jest.spyOn(orderService, 'findMenu').mockResolvedValue(findMenu);
+
+  //     const orderItems: OrderCreateDTO = {
+  //       OrderItems: [{ menuId: '64d6619e4ccb3556015282cc', amount: 2 }],
+  //     };
+
+  //     // Execute the method
+  //     const result = await orderService.createOrder(
+  //       customerName,
+  //       tableNumber,
+  //       orderItems,
+  //     );
+
+  //     // Assertions
+  //     expect(tableService.reserveTable).toHaveBeenCalledWith(
+  //       customerName,
+  //       tableNumber,
+  //     );
+  //     expect(menuService.findAll).toHaveBeenCalledWith([
+  //       '64d6619e4ccb3556015282cc',
+  //     ]);
+
+  //     expect(result).toEqual;
   //   });
   // });
+
+  describe('updateOrderStatus', () => {
+    it('should update the order status and cancel reservation for completed/canceled status', async () => {
+      const updateOrder: OrderUpdateStatus = {
+        _id: new Types.ObjectId(),
+        status: OrderStatus.COMPLETED,
+      };
+
+      const order = {
+        _id: updateOrder._id,
+        table: {
+          _id: new Types.ObjectId(), // Mock table _id
+        },
+        save: jest.fn(),
+        deleteOne: jest.fn(),
+      } as any;
+
+      (orderModel.findById as jest.Mock).mockResolvedValue(order);
+
+      const result = await orderService.updateOrderStatus(updateOrder);
+
+      expect(order.status).toEqual(updateOrder.status);
+      expect(order.deleteOne).toHaveBeenCalled();
+      expect(result).toEqual(order);
+    });
+
+    it('should throw NotFoundException if order does not exist', async () => {
+      const updateOrder: OrderUpdateStatus = {
+        _id: new Types.ObjectId(),
+        status: OrderStatus.COMPLETED,
+      };
+
+      (orderModel.findById as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        orderService.updateOrderStatus(updateOrder),
+      ).rejects.toThrowError(
+        new NotFoundException(
+          `O id do mesa informado não existe ${updateOrder._id}`,
+        ),
+      );
+    });
+
+    it('should throw NotFoundException if tableId is undefined', async () => {
+      const updateOrder: OrderUpdateStatus = {
+        _id: new Types.ObjectId(),
+        status: OrderStatus.COMPLETED,
+      };
+
+      const order = {
+        _id: updateOrder._id,
+        table: undefined,
+      } as any;
+
+      (orderModel.findById as jest.Mock).mockResolvedValue(order);
+
+      await expect(
+        orderService.updateOrderStatus(updateOrder),
+      ).rejects.toThrowError(
+        new NotFoundException(
+          `O id do mesa informado não existe ${updateOrder._id}`,
+        ),
+      );
+    });
+  });
 });

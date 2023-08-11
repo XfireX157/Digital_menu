@@ -50,16 +50,17 @@ export class MenuService {
   async create(file: Express.Multer.File, req: Request) {
     const menu: MenuCreateDTO = req.body as unknown as MenuCreateDTO;
     const category = await this.categoryModel.findName(menu.categoryName);
-    const newMenu = new this.menuModel();
 
-    newMenu._id = new Types.ObjectId();
-    newMenu.name = menu.name;
-    newMenu.description = menu.description;
-    newMenu.price = menu.price;
-    newMenu.image = file.filename;
-    newMenu.category = category;
+    const newMenu: Menu = {
+      _id: new Types.ObjectId(),
+      name: menu.name,
+      description: menu.description,
+      price: menu.price,
+      image: file.filename,
+      category: category,
+    };
 
-    return newMenu.save();
+    return this.menuModel.create(newMenu);
   }
 
   async deleteOne(id: string): Promise<MenuViewDTO> {

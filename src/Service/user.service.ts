@@ -10,7 +10,7 @@ import { EmailService } from './email.service';
 import { randomBytes } from 'crypto';
 import { PasswordReset } from '../Schema/PasswordResetToken.schema';
 import { ForgotPasswordDTO } from '../DTO/User/forgot_Password.dto';
-import { ResetPasswordDTO } from '../DTO/User/reset_Password.dto';
+import { PasswordResetDTO } from '../DTO/User/resetPassword.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -18,12 +18,16 @@ export class UserService {
   constructor(
     @InjectModel(User.name) private UserModel: Model<User>,
     @InjectModel(PasswordReset.name)
-    private ResetPassword: Model<PasswordReset>,
+    private PasswordReset: Model<PasswordReset>,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
   ) {}
 
   async register(user: UserCreateDTO) {
+    const findEmail = await this.UserModel.findOne({ email: user.email });
+    if (findEmail) {
+      throw new ForbiddenException('Esse usuario já existe', 400);
+    }
     user.password = await bcrypt.hash(user.password, 10);
     return this.UserModel.create(user);
   }
@@ -45,21 +49,21 @@ export class UserService {
   }
 
   async find(): Promise<PasswordReset[]> {
-    const findAll = await this.ResetPassword.find();
+    const findAll = await this.PasswordReset.find();
     return findAll;
   }
 
-  async forgetPassword(email: string) {
+  async forgotPassword(email: string) {
     await this.findEmail(email);
     const token = await this.GenerateHash();
 
     const PasswordResetArray: ForgotPasswordDTO = {
       token,
       email,
-      tokenExpire: new Date(Date.now() + 20),
+      tokenExpire: new Date(Date.now() + 3000000),
     };
 
-    await this.ResetPassword.create(PasswordResetArray);
+    await this.PasswordReset.create(PasswordResetArray);
 
     await this.emailService.sendMail(
       email,
@@ -73,37 +77,38 @@ export class UserService {
     };
   }
 
-  async resetPassword(passwordToken: ResetPasswordDTO) {
-    const token = await this.ResetPassword.findOne({
-      token: passwordToken.token,
-    }).exec();
-
-    if (token === null) {
-      throw new ForbiddenException('Esse token não existe', 404);
-    }
-
-    const user = await this.UserModel.findOne({ email: token.email }).exec();
-
-    if (user === null) {
-      throw new ForbiddenException('Esse usuario não existe', 404);
-    }
-
-    const deleteToken = await this.ResetPassword.deleteOne({
+  async resetPassword(passwordToken: PasswordResetDTO) {
+    const passwordReset = await this.PasswordReset.findOne({
       token: passwordToken.token,
     });
 
-    if (token.tokenExpire < new Date()) {
-      deleteToken.deletedCount;
-      throw new ForbiddenException('Esse token expirou', 404);
+    if (!passwordReset) {
+      throw new ForbiddenException('Esse token não existe', 404);
+    }
+
+    const user = await this.UserModel.findOne({ email: passwordReset.email });
+
+    if (!user) {
+      throw new ForbiddenException('Esse usuario não existe', 404);
+    }
+
+    if (passwordReset.tokenExpire < new Date()) {
+      await this.PasswordReset.deleteOne({
+        token: passwordReset.token,
+      });
+      throw new ForbiddenException('Esse token expirou', 400);
     }
 
     if (passwordToken.password !== passwordToken.confirmPassword) {
-      throw new ForbiddenException('A senha está errada', 404);
+      throw new ForbiddenException('A senha está errada', 400);
     }
 
     user.password = await bcrypt.hash(passwordToken.password, 10);
-    deleteToken.deletedCount;
-    user.save();
+    await user.save();
+
+    await this.PasswordReset.deleteOne({
+      token: passwordReset.token,
+    });
     return { message: 'Senha redefinida com sucesso' };
   }
 

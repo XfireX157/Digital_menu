@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Header, Headers } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeaders, ApiTags } from '@nestjs/swagger';
-import { ResetPasswordDTO } from 'src/DTO/User/reset_Password.dto';
+import { PasswordResetDTO } from 'src/DTO/User/resetPassword.dto';
 import { UserCreateDTO } from 'src/DTO/User/user_create.dto';
 import { UserLoginDto } from 'src/DTO/User/user_login.dto';
 import { PasswordReset } from 'src/Schema/PasswordResetToken.schema';
@@ -39,11 +39,11 @@ export class UserController {
 
   @Post('forgot-password')
   async ForgotPassword(@Body('email') email: string) {
-    return this.userService.forgetPassword(email);
+    return this.userService.forgotPassword(email);
   }
 
   @Post('reset-password')
-  async ResertPassword(@Body() resetPasswordDTO: ResetPasswordDTO) {
-    return this.userService.resetPassword(resetPasswordDTO);
+  async ResertPassword(@Body() passwordResetDTO: PasswordResetDTO) {
+    return this.userService.resetPassword(passwordResetDTO);
   }
 }
