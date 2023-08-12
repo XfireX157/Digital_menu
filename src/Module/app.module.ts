@@ -9,6 +9,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import configuration from '../Config/configuration';
 import { TableModule } from './table.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
       load: [configuration],
     }),
     MulterModule.register({ dest: './uploads' }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRootAsync({
       imports: [ConfigModule], // Importa o ConfigModule
       useFactory: async (configService: ConfigService) => ({

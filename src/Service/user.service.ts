@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule/dist';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserCreateDTO } from '../DTO/User/user_create.dto';
@@ -22,6 +23,7 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
   ) {}
+  private readonly logger = new Logger(UserService.name);
 
   async register(user: UserCreateDTO) {
     const findEmail = await this.UserModel.findOne({ email: user.email });
@@ -60,7 +62,7 @@ export class UserService {
     const PasswordResetArray: ForgotPasswordDTO = {
       token,
       email,
-      tokenExpire: new Date(Date.now() + 3000000),
+      tokenExpire: new Date(Date.now() + 30000),
     };
 
     await this.PasswordReset.create(PasswordResetArray);
@@ -130,5 +132,19 @@ export class UserService {
 
   async GenerateHash(): Promise<string> {
     return randomBytes(20).toString('hex');
+  }
+
+  @Cron('10 * * * * *')
+  private async handleCron() {
+    const expiredTokens = await this.PasswordReset.find({
+      tokenExpire: { $lt: new Date() }, // Filtra os tokens que já expiraram
+    });
+
+    expiredTokens.map(async (item) => {
+      await this.PasswordReset.deleteOne({ tokenExpire: item.tokenExpire });
+      console.log(
+        `Token expirado excluído: ${item.token} - ${item.tokenExpire}`,
+      );
+    });
   }
 }

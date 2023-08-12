@@ -19,5 +19,6 @@ jobs:
         run: |
           docker build -t gustavomartins09/digital_menu:latest .
           docker push gustavomartins09/digital_menu:latest
+          
       - name: Cleanup
         run: docker logout
