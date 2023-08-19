@@ -10,9 +10,10 @@ import { Menu } from '../Schema/menu.schema';
 import { Model, Types } from 'mongoose';
 import { CategoryService } from './category.service';
 import { MenuPagineDTO } from '../DTO/Menu/menu_pagine.dto';
+import { IMenuService } from 'src/Interface/IMenu.service';
 
 @Injectable()
-export class MenuService {
+export class MenuService implements IMenuService {
   constructor(
     @InjectModel(Menu.name) private readonly menuModel: Model<Menu>,
     private readonly categoryModel: CategoryService,

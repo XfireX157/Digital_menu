@@ -13,9 +13,10 @@ import { PasswordReset } from '../Schema/PasswordResetToken.schema';
 import { ForgotPasswordDTO } from '../DTO/User/forgot_Password.dto';
 import { PasswordResetDTO } from '../DTO/User/resetPassword.dto';
 import * as bcrypt from 'bcrypt';
+import { IUserService } from 'src/Interface/IUser.service';
 
 @Injectable()
-export class UserService {
+export class UserService implements IUserService {
   constructor(
     @InjectModel(User.name) private UserModel: Model<User>,
     @InjectModel(PasswordReset.name)

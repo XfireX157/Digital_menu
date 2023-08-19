@@ -6,9 +6,10 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Table, TableDocument } from '../Schema/table.shema';
+import { ITableService } from 'src/Interface/ITable.service';
 
 @Injectable()
-export class TableService {
+export class TableService implements ITableService {
   constructor(
     @InjectModel(Table.name) private tableModel: Model<TableDocument>,
   ) {}
@@ -16,7 +17,7 @@ export class TableService {
   async findAll(): Promise<Table[]> {
     const find = await this.tableModel.find().exec();
 
-    if (find.length === 0) {
+    if (!find.length) {
       throw new ForbiddenException('Não existe nenhum menu criado');
     }
 

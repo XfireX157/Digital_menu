@@ -12,9 +12,10 @@ import {
 } from '../DTO/Order/order_create.dto';
 import { OrderItems } from '../Schema/orderItems.shema';
 import { TableService } from './table.service';
+import { IOrderService } from 'src/Interface/IOrder.service';
 
 @Injectable()
-export class OrderService {
+export class OrderService implements IOrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Menu.name) private menuModel: Model<MenuDocument>,

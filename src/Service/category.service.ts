@@ -6,9 +6,10 @@ import { CategoryViewDTO } from '../DTO/Category/category.view.dto';
 import { CategoryCreateDTO } from '../DTO/Category/category.create.dto';
 import { CategoryUpdateDTO } from '../DTO/Category/category.update.dto';
 import { ForbiddenException } from '../Exception/forbidden.exception';
+import { ICategoryService } from 'src/Interface/ICategory.service';
 
 @Injectable()
-export class CategoryService {
+export class CategoryService implements ICategoryService {
   constructor(
     @InjectModel(Category.name) private CategoryModel: Model<Category>,
   ) {}
